@@ -13,6 +13,8 @@ import (
 // The returned socket value is initially unbound.
 func NewXPub(ctx context.Context, opts ...Option) Socket {
 	xpub := &xpubSocket{newSocket(ctx, XPub, opts...)}
+	xpub.sck.w = newPubMWriter(xpub.sck.ctx)
+	xpub.sck.r = newPubQReader(xpub.sck.ctx)
 	return xpub
 }
 
@@ -29,7 +31,9 @@ func (xpub *xpubSocket) Close() error {
 // Send puts the message on the outbound send queue.
 // Send blocks until the message can be queued or the send deadline expires.
 func (xpub *xpubSocket) Send(msg Msg) error {
-	return xpub.sck.Send(msg)
+	ctx, cancel := context.WithTimeout(xpub.sck.ctx, xpub.sck.timeout())
+	defer cancel()
+	return xpub.sck.w.write(ctx, msg)
 }
 
 // Recv receives a complete message.

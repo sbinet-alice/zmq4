@@ -7,18 +7,24 @@ package zmq4
 import (
 	"context"
 	"net"
+	"sync"
 )
 
 // NewXSub returns a new XSUB ZeroMQ socket.
 // The returned socket value is initially unbound.
 func NewXSub(ctx context.Context, opts ...Option) Socket {
-	xsub := &xsubSocket{newSocket(ctx, XSub, opts...)}
+	xsub := &xsubSocket{sck: newSocket(ctx, XSub, opts...)}
+	xsub.sck.r = newQReader(xsub.sck.ctx)
+	xsub.topics = make(map[string]struct{})
 	return xsub
 }
 
 // xsubSocket is a XSUB ZeroMQ socket.
 type xsubSocket struct {
 	sck *socket
+
+	mu     sync.RWMutex
+	topics map[string]struct{}
 }
 
 // Close closes the open Socket
@@ -65,7 +71,50 @@ func (xsub *xsubSocket) GetOption(name string) (interface{}, error) {
 
 // SetOption is used to set an option for a socket.
 func (xsub *xsubSocket) SetOption(name string, value interface{}) error {
-	return xsub.sck.SetOption(name, value)
+	if true && false {
+		return xsub.sck.SetOption(name, value)
+	}
+	err := xsub.sck.SetOption(name, value)
+	if err != nil {
+		return err
+	}
+
+	var (
+		topic []byte
+	)
+
+	switch name {
+	case OptionSubscribe:
+		k := value.(string)
+		xsub.subscribe(k, 1)
+		topic = append([]byte{1}, k...)
+
+	case OptionUnsubscribe:
+		k := value.(string)
+		topic = append([]byte{0}, k...)
+		xsub.subscribe(k, 0)
+
+	default:
+		return ErrBadProperty
+	}
+
+	xsub.sck.mu.RLock()
+	if len(xsub.sck.conns) > 0 {
+		err = xsub.Send(NewMsg(topic))
+	}
+	xsub.sck.mu.RUnlock()
+	return err
+}
+
+func (xsub *xsubSocket) subscribe(topic string, v int) {
+	xsub.mu.Lock()
+	switch v {
+	case 0:
+		delete(xsub.topics, topic)
+	case 1:
+		xsub.topics[topic] = struct{}{}
+	}
+	xsub.mu.Unlock()
 }
 
 var (
