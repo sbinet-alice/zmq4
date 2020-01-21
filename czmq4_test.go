@@ -227,6 +227,65 @@ var (
 		},
 	}
 
+	cpubxsubs = []testCasePubXSub{
+		{
+			name:     "tcp-cpub-xsub",
+			endpoint: must(EndPoint("tcp")),
+			pub:      zmq4.NewCPub(bkg),
+			xsub0:    zmq4.NewXSub(bkg),
+			xsub1:    zmq4.NewXSub(bkg),
+			xsub2:    zmq4.NewXSub(bkg),
+		},
+		{
+			name:     "tcp-pub-cxsub",
+			endpoint: must(EndPoint("tcp")),
+			pub:      zmq4.NewPub(bkg),
+			xsub0:    zmq4.NewCXSub(bkg),
+			xsub1:    zmq4.NewCXSub(bkg),
+			xsub2:    zmq4.NewCXSub(bkg),
+		},
+		{
+			name:     "tcp-cpub-cxsub",
+			endpoint: must(EndPoint("tcp")),
+			pub:      zmq4.NewCPub(bkg),
+			xsub0:    zmq4.NewCXSub(bkg),
+			xsub1:    zmq4.NewCXSub(bkg),
+			xsub2:    zmq4.NewCXSub(bkg),
+		},
+		{
+			name:     "ipc-cpub-xsub",
+			endpoint: "ipc://ipc-cpub-xsub",
+			pub:      zmq4.NewCPub(bkg),
+			xsub0:    zmq4.NewXSub(bkg),
+			xsub1:    zmq4.NewXSub(bkg),
+			xsub2:    zmq4.NewXSub(bkg),
+		},
+		{
+			name:     "ipc-pub-cxsub",
+			endpoint: "ipc://ipc-pub-cxsub",
+			pub:      zmq4.NewPub(bkg),
+			xsub0:    zmq4.NewCXSub(bkg),
+			xsub1:    zmq4.NewCXSub(bkg),
+			xsub2:    zmq4.NewCXSub(bkg),
+		},
+		{
+			name:     "ipc-cpub-cxsub",
+			endpoint: "ipc://ipc-cpub-cXsub",
+			pub:      zmq4.NewCPub(bkg),
+			xsub0:    zmq4.NewCXSub(bkg),
+			xsub1:    zmq4.NewCXSub(bkg),
+			xsub2:    zmq4.NewCXSub(bkg),
+		},
+		{
+			name:     "inproc-cpub-cxsub",
+			endpoint: "inproc://inproc-cpub-cXsub",
+			pub:      zmq4.NewCPub(bkg),
+			xsub0:    zmq4.NewCXSub(bkg),
+			xsub1:    zmq4.NewCXSub(bkg),
+			xsub2:    zmq4.NewCXSub(bkg),
+		},
+	}
+
 	crouterdealers = []testCaseRouterDealer{
 		{
 			name:     "tcp-router-cdealer",
@@ -408,5 +467,6 @@ func init() {
 	pairs = append(pairs, cpairs...)
 	pubsubs = append(pubsubs, cpubsubs...)
 	xpubsubs = append(xpubsubs, cxpubsubs...)
+	pubxsubs = append(pubxsubs, cpubxsubs...)
 	routerdealers = append(routerdealers, crouterdealers...)
 }

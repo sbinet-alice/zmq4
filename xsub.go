@@ -7,12 +7,15 @@ package zmq4
 import (
 	"context"
 	"net"
+
+	"golang.org/x/xerrors"
 )
 
 // NewXSub returns a new XSUB ZeroMQ socket.
 // The returned socket value is initially unbound.
 func NewXSub(ctx context.Context, opts ...Option) Socket {
-	xsub := &xsubSocket{newSocket(ctx, XSub, opts...)}
+	xsub := &xsubSocket{sck: newSocket(ctx, XSub, opts...)}
+	xsub.sck.r = newQReader(xsub.sck.ctx)
 	return xsub
 }
 
@@ -72,6 +75,13 @@ func (xsub *xsubSocket) GetOption(name string) (interface{}, error) {
 
 // SetOption is used to set an option for a socket.
 func (xsub *xsubSocket) SetOption(name string, value interface{}) error {
+	switch name {
+	case OptionSubscribe:
+		return xerrors.Errorf("can not subscribe on a XSub socket")
+	case OptionUnsubscribe:
+		return xerrors.Errorf("can not unsubscribe on a XSub socket")
+	}
+
 	return xsub.sck.SetOption(name, value)
 }
 
